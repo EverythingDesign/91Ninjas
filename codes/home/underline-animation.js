@@ -20,7 +20,22 @@
     ".big-arrow_wrap .highlight-svg_wrap, " +
       ".list .highlighted-content_wrap .highlight-svg_wrap",
   );
+  const clickableSpriteReveals = gsap.utils.toArray(
+    ".gtm-stick_wrap .img-sprite_wrap.is-gtm-partner, " +
+      ".gtm-stick_wrap.is-logo .img-sprite_wrap.is-91ninjas",
+  );
+  const gtmPartnerSpriteViewports = gsap.utils.toArray(
+    ".img-sprite_wrap.is-gtm-partner",
+  );
   const clickArrows = gsap.utils.toArray(".click-arrow");
+
+  // Size the GTM artwork from the full phrase width. Its aspect ratio then
+  // supplies the height, including room for the orange accent marks.
+  gsap.set(gtmPartnerSpriteViewports, {
+    width: "100%",
+    height: "auto",
+    flex: "none",
+  });
 
   function initializeClickArrows() {
     const reducedMotion = window.matchMedia(
@@ -54,7 +69,13 @@
 
   initializeClickArrows();
 
-  if (underlines.length === 0 && highlightReveals.length === 0) return;
+  if (
+    underlines.length === 0 &&
+    highlightReveals.length === 0 &&
+    clickableSpriteReveals.length === 0
+  ) {
+    return;
+  }
 
   const media = gsap.matchMedia();
 
@@ -103,6 +124,40 @@
         },
       );
     });
+
+    clickableSpriteReveals.forEach(function (spriteViewport) {
+      const sprite = spriteViewport.querySelector(".img-sprite");
+      const trigger =
+        spriteViewport.closest(".gtm-stick_wrap") || spriteViewport;
+
+      if (sprite) {
+        gsap.set(sprite, { animationPlayState: "paused" });
+      }
+
+      gsap.fromTo(
+        spriteViewport,
+        {
+          clipPath: "inset(0 100% 0 0)",
+          WebkitClipPath: "inset(0 100% 0 0)",
+        },
+        {
+          clipPath: "inset(0 0% 0 0)",
+          WebkitClipPath: "inset(0 0% 0 0)",
+          duration: 1.1,
+          ease: "power2.out",
+          onComplete: function () {
+            if (sprite) {
+              gsap.set(sprite, { animationPlayState: "running" });
+            }
+          },
+          scrollTrigger: {
+            trigger: trigger,
+            start: "clamp(top 85%)",
+            once: true,
+          },
+        },
+      );
+    });
   });
 
   media.add("(prefers-reduced-motion: reduce)", function () {
@@ -117,6 +172,22 @@
         clipPath: "inset(0 0% 0 0)",
         WebkitClipPath: "inset(0 0% 0 0)",
       });
+    }
+
+    if (clickableSpriteReveals.length > 0) {
+      gsap.set(clickableSpriteReveals, {
+        clipPath: "inset(0 0% 0 0)",
+        WebkitClipPath: "inset(0 0% 0 0)",
+      });
+
+      gsap.set(
+        clickableSpriteReveals
+          .map(function (spriteViewport) {
+            return spriteViewport.querySelector(".img-sprite");
+          })
+          .filter(Boolean),
+        { animationPlayState: "paused" },
+      );
     }
   });
 })();
