@@ -70,9 +70,11 @@ if (
           end: isDesktop ? "top top" : "bottom bottom",
           scrub: true,
           onEnter: () => {
+            gsap.to(".scroll-indicator", {opacity: 0, duration: 0.5, ease: "power2.inOut"});
             gsap.set(introSection, { pointerEvents: "none" });
           },
           onLeaveBack: () => {
+            gsap.to(".scroll-indicator", {opacity: 1, duration: 0.5, ease: "power2.inOut"});
             gsap.set(introSection, { pointerEvents: "auto" });
           },
         },
