@@ -1,0 +1,31 @@
+<!-- Append to Home page settings > Custom code > Inside <head> tag. -->
+<!-- Keep the existing Head code. Deploy together with the updated intro.js. -->
+<script>
+  (function () {
+    try {
+      if (localStorage.getItem("91ninjas_intro_seen") === "1") {
+        document.documentElement.setAttribute("data-ninjas-intro", "skip");
+      }
+    } catch (error) {
+      // Show the normal intro when the browser does not allow localStorage.
+    }
+  })();
+</script>
+<style>
+  html[data-ninjas-intro="skip"] #home-intro,
+  html[data-ninjas-intro="skip"] [attr-name="intro-trigger"] {
+    display: none !important;
+  }
+
+  html[data-ninjas-intro="skip"] #content-section {
+    margin-top: 0 !important;
+  }
+
+  html[data-ninjas-intro="skip"] #content-section,
+  html[data-ninjas-intro="skip"] #content-section [main-content],
+  html[data-ninjas-intro="skip"] [logo-head="main-content"],
+  html[data-ninjas-intro="skip"] .brand_links {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+</style>

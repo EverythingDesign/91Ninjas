@@ -7,6 +7,7 @@ This repository contains the custom JavaScript used by the 91 Ninjas Webflow sit
 - Node.js 18 or newer
 - npm
 - `lsof` (included with macOS and most Unix-like development environments)
+- OpenSSL (for generating the local development certificate)
 
 ## Project structure
 
@@ -17,15 +18,21 @@ This repository contains the custom JavaScript used by the 91 Ninjas Webflow sit
 
 ## Local development
 
-Install dependencies and start the local servers:
+Install dependencies, generate the local certificate, and start the local servers:
 
 ```bash
 npm install
+npm run setup:ssl
 npm run dev
 ```
 
+Run `npm run setup:ssl` once after cloning, and again when the certificate expires
+after one year. It creates `localhost.pem` and `localhost-key.pem` in the project
+root. These files are ignored by Git and are not included when cloning the repo.
+If you already have your own local certificate files, keep them and skip this step.
+
 Source files are served from `https://localhost:3001/`. On first use, visit
-<https://localhost:3001/common/utils.js> and accept the browser warning for the
+<https://localhost:3001/home/intro.js> and accept the browser warning for the
 self-signed development certificate.
 
 Add local scripts to Webflow's **Before `</body>` tag** field:
@@ -37,6 +44,42 @@ Add local scripts to Webflow's **Before `</body>` tag** field:
 
 Load shared utilities before page-specific files, then reload the Webflow preview
 after saving a local change.
+
+## One-time homepage intro
+
+The homepage stores `91ninjas_intro_seen=1` in localStorage after the first visible
+visit initializes. Later homepage visits skip the hero and start at the notebook
+content. The flag has no expiry and is scoped to the browser and origin. Clearing
+cached files alone does not reset it; remove this site's stored data to replay it.
+
+Install both pieces together:
+
+1. Append `webflow/home-intro-head.html` to **Home page settings → Custom code →
+   Inside <head> tag**, preserving the existing Head code. This prevents a flash
+   of the hero for returning visitors, removes the content's negative margin, and
+   reveals the content and navigation before the animation script loads.
+2. Replace the existing homepage intro script with the updated
+   `codes/home/intro.js` for local development, or `dist/home/intro.js` for
+   production. Load it after GSAP and ScrollTrigger. Do not include both versions.
+   A public deployment must use a hosted production bundle or inline its contents
+   in a `<script>` tag; `https://localhost:3001/` only works on a developer's Mac.
+3. Publish the Home page changes to the intended Webflow domain.
+
+The script also handles Back/Forward cache restoration, stops only its own intro
+animations when skipping, and preserves the visitor's position within the content.
+When localStorage is unavailable, the normal intro remains usable.
+
+For development, reset only the intro flag in the homepage's browser console:
+
+```js
+localStorage.removeItem("91ninjas_intro_seen");
+location.reload();
+```
+
+Verify on desktop and mobile: first visit, refresh, another page → Home,
+another page → browser Back, flag reset, and blocked storage. The first visit must
+keep the original scroll animation; repeat visits must show the content with no
+hero, blank scroll space, or hidden navigation.
 
 ## Production build
 
